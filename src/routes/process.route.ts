@@ -2,9 +2,8 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { downloadImage } from '../services/download.js';
-import { processImage } from '../services/processor.js';
+import { processAndUploadImage } from '../services/processor.js';
 import { auth } from '../middlewares/auth.js';
-import { uploadProcessedImages } from '../services/upload.js';
 
 const processRoutes = new Hono();
 processRoutes.use('*', auth);
@@ -28,16 +27,15 @@ processRoutes.post(
           `Error downloading image: ${error || 'Buffer is null'}`
         );
       }
-      const resizedImages = await processImage(buffer, imagePath, widths);
-      const uploaded = await uploadProcessedImages(resizedImages);
-      if (uploaded.error) {
-        throw new Error(uploaded.error);
+      const resized = await processAndUploadImage(buffer, imagePath, widths);
+      if (resized.error) {
+        throw new Error(resized.error);
       }
       return c.json(
         {
           success: true,
           message: 'Images resized and uploaded',
-          paths: uploaded.paths,
+          paths: resized.paths,
         },
         200
       );

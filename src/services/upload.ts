@@ -13,6 +13,49 @@ interface UploadProcessedImagesResponse {
   error: string | null;
 }
 
+interface UploadProcessedImageResponse {
+  success: boolean;
+  path: SupabaseImageUploadSuccessResponse | null;
+  error: string | null;
+}
+
+export async function uploadProcessedImage(
+  image: ProcessImageResult
+): Promise<UploadProcessedImageResponse> {
+  try {
+    const supabase = await createSupabaseClient();
+    const { data: imageUpload, error: imageUploadError } =
+      await supabase.storage.from('images').upload(image.path, image.buffer, {
+        contentType: 'image/webp',
+        cacheControl: '31536000',
+      });
+    if (imageUploadError) {
+      throw new Error(
+        `[Supabase Storage Error] ${imageUploadError.name}: ${imageUploadError.message}`
+      );
+    }
+    return {
+      success: true,
+      path: imageUpload,
+      error: null,
+    };
+  } catch (error) {
+    console.log(error);
+    if (error instanceof Error) {
+      return {
+        success: false,
+        path: null,
+        error: error.message,
+      };
+    }
+    return {
+      success: false,
+      path: null,
+      error: 'An unknown error has occurred with uploadProcessedImages',
+    };
+  }
+}
+
 export async function uploadProcessedImages(
   images: ProcessImageResult[]
 ): Promise<UploadProcessedImagesResponse> {
