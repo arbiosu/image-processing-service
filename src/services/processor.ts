@@ -1,8 +1,5 @@
 import sharp from 'sharp';
-import {
-  uploadProcessedImage,
-  type SupabaseImageUploadSuccessResponse,
-} from './upload.js';
+import { uploadProcessedImage } from './upload.js';
 
 export interface ProcessImageResult {
   buffer: Buffer<ArrayBufferLike>;
